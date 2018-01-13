@@ -4,8 +4,16 @@ const request = require('supertest');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
-beforeEach('Wipe out our todos collection in database', (done) => {
-    Todo.remove({}).then(() => done());
+const todos = [{
+   text: 'First test todo'
+}, {
+    text: 'Second test todo'
+}];
+
+beforeEach('Prepare database for out test propose', (done) => {
+    Todo.remove({}).then(() =>{
+        return Todo.insertMany(todos);
+    }).then(() => done());
 });
 
 describe('POST /todos', () => {
@@ -25,7 +33,7 @@ describe('POST /todos', () => {
                    return done(err);        // if error occurred - send it with done callback
                }
 
-               Todo.find().then((todos) => {        // retrieve all todos from the database
+               Todo.find({text}).then((todos) => {        // retrieve all todos from the database
                    expect(todos.length).toBe(1);    // assert there is only one todo
                    expect(todos[0].text).toBe(text);    // assert that one todo has our text set
                    done();
@@ -44,9 +52,21 @@ describe('POST /todos', () => {
                 }
 
                 Todo.find({}).then((todos) => {
-                    expect(todos.length).toBe(0);   // assert that no todo was created in database
+                    expect(todos.length).toBe(2);   // assert that database contains only our dummy todos
                     done();
                 }).catch(e => done(e));
             });
+    });
+});
+
+describe('GET /todos', () => {
+
+    it('should get all todos', (done) => {
+       request(app)
+           .get('/todos')
+           .expect(200)
+           .expect((res) => {
+               expect(res.body.todos.length).toBe(2);
+           }).end(done);
     });
 });
