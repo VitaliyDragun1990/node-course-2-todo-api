@@ -24,7 +24,7 @@ describe('POST /todos', () => {
                if (err) {
                    return done(err);        // if error occurred - send it with done callback
                }
-               
+
                Todo.find().then((todos) => {        // retrieve all todos from the database
                    expect(todos.length).toBe(1);    // assert there is only one todo
                    expect(todos[0].text).toBe(text);    // assert that one todo has our text set
