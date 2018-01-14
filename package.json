@@ -4,8 +4,12 @@
   "description": "Simple Node toto app with mongo database.",
   "main": "index.js",
   "scripts": {
+    "start": "node server/server.js",
     "test": "mocha server/**/*.test.js",
     "test-watch": "nodemon --exec \"npm test\""
+  },
+  "engines": {
+    "node": "8.9.1"
   },
   "author": "Vitaly Dragun",
   "license": "ISC",
