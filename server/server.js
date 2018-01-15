@@ -1,6 +1,7 @@
-let express = require('express');
-let bodyParser = require('body-parser');
-let {ObjectId} = require('mongodb');
+const _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');
+const {ObjectId} = require('mongodb');
 
 let {mongoose} = require('./db/mongoose');
 let {Todo} = require('./models/todo');
@@ -42,7 +43,7 @@ app.get('/todos/:id', (req, res) => {
 
     Todo.findById(id).then((todo) => {
         if (!todo) {
-          return res.status(404).send();
+            return res.status(404).send();
         }
         res.send({todo});
     }).catch((e) => res.send(400).send());
@@ -50,18 +51,45 @@ app.get('/todos/:id', (req, res) => {
 });
 
 app.delete('/todos/:id', (req, res) => {
-  let id = req.params['id'];
+    let id = req.params['id'];
 
-  if (!ObjectId.isValid(id)) {
-      return res.status(404).send();
-  }
+    if (!ObjectId.isValid(id)) {
+        return res.status(404).send();
+    }
 
-  Todo.findByIdAndRemove(id).then(todo => {
-      if(!todo) {
-          return res.status(404).send();
-      }
-      res.status(200).send({todo});
-  }).catch((e) => res.status(400).send());
+    Todo.findByIdAndRemove(id).then(todo => {
+        if (!todo) {
+            return res.status(404).send();
+        }
+        res.status(200).send({todo});
+    }).catch((e) => res.status(400).send());
+});
+
+app.patch('/todos/:id', (req, res) => {
+    let id = req.params['id'];
+    // get only specific property from request body
+    let body = _.pick(req.body, ['text', 'completed']);
+
+    if (!ObjectId.isValid(id)) {
+        return res.status(404).send();
+    }
+    // if completed boolean and it's true
+    if (_.isBoolean(body.completed) && body.completed) {
+        // set completedAt timestamp
+        body.completedAt = new Date().getTime();
+    } else {
+        body.completed = false;
+        body.completedAt = null;
+    }
+    // update the database
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then(todo => {
+        // if there wasn't todo with such id, return 404 with empty body
+        if (!todo) {
+            return res.status(404).send();
+        }
+        // if update successful, return todo as property of the response body
+        res.send({todo});
+    }).catch(e => res.status(400).send());
 });
 
 // start express application
