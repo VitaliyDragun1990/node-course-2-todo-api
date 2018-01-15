@@ -18,8 +18,8 @@ app.post('/todos', (req, res) => {
     let todo = new Todo({
         text: req.body.text
     });
-    todo.save().then((doc) => {
-        res.send(doc);
+    todo.save().then((todo) => {
+        res.send({todo});
     }, (e) => {
         res.status(400).send(e);
     })
@@ -64,6 +64,7 @@ app.delete('/todos/:id', (req, res) => {
   }).catch((e) => res.status(400).send());
 });
 
+// start express application
 app.listen(port, () => console.log(`Started on port ${port}`));
 
 module.exports = {app};
