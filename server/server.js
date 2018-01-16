@@ -1,3 +1,5 @@
+require('./config/config');
+
 const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -9,7 +11,7 @@ let {User} = require('./models/user');
 
 let app = express();
 // define port variable to make possible heroku deployment
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 // configuring the middleware to parse request body into js object
 app.use(bodyParser.json());
