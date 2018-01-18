@@ -1,6 +1,7 @@
 let mongoose = require('mongoose');
 
-// define model for todo
+/********************* DEFINE TODO MODEL ************************/
+
 let Todo = mongoose.model('Todo', {
     text: {
         type: String,

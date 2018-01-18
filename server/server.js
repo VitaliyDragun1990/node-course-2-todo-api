@@ -17,7 +17,9 @@ const port = process.env.PORT;
 // configuring the middleware to parse request body into js object
 app.use(bodyParser.json());
 
-// define routes
+ /*********** DEFINE ROUTE HANDLERS **************/
+
+// POST '/todos' -> create a new todo
 app.post('/todos', (req, res) => {
     let todo = new Todo({
         text: req.body.text
@@ -29,6 +31,7 @@ app.post('/todos', (req, res) => {
     })
 });
 
+// GET '/todos' -> retrieve all existing todos
 app.get('/todos', (req, res) => {
     Todo.find({}).then((todos) => {
         res.send({todos});
@@ -37,6 +40,7 @@ app.get('/todos', (req, res) => {
     });
 });
 
+// GET '/todos/:id' -> retrieve existing todo by id
 app.get('/todos/:id', (req, res) => {
     let id = req.params['id'];
     // validate the id
@@ -53,6 +57,7 @@ app.get('/todos/:id', (req, res) => {
 
 });
 
+// DELETE '/todos/:id' -> delete existing todo
 app.delete('/todos/:id', (req, res) => {
     let id = req.params['id'];
 
@@ -68,6 +73,7 @@ app.delete('/todos/:id', (req, res) => {
     }).catch((e) => res.status(400).send());
 });
 
+// PATCH '/todos/:id' -> update existing todo
 app.patch('/todos/:id', (req, res) => {
     let id = req.params['id'];
     // get only specific property from request body
@@ -95,6 +101,8 @@ app.patch('/todos/:id', (req, res) => {
     }).catch(e => res.status(400).send());
 });
 
+
+// POST '/users' -> create new user
 app.post('/users', (req, res) => {
     let body = _.pick(req.body, ['email', 'password']);
     let user = new User(body);
@@ -107,6 +115,7 @@ app.post('/users', (req, res) => {
 });
 
 // define route handler with middleware
+// GET '/users/me' -> return information about current user
 app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
 });

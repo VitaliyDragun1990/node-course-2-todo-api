@@ -1,3 +1,5 @@
+/********************* CONFIG ENVIRONMENT ************************/
+
 // make this changes to have different databases for development and testing proposes
 let env = process.env.NODE_ENV || 'development';
 
