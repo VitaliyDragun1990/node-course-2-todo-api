@@ -35,7 +35,8 @@ let UserSchema = new mongoose.Schema({
     }]
 });
 
-// override existing method on a schema
+                /******* OVERRIDE EXISTING METHODS ON A SCHEMA *******/
+
 // this method defines what exactly gets send back when the mongoose
 // model is converted into a json value
 UserSchema.methods.toJSON = function () {
@@ -45,7 +46,8 @@ UserSchema.methods.toJSON = function () {
     return _.pick(userObject, ['_id', 'email']);
 };
 
-// create custom instance method on our schema
+                /******* DEFINE CUSTOM  METHODS ON A SCHEMA *******/
+
 // don't use arrow function because we need access to 'this' keyword
 UserSchema.methods.generateAuthToken = function () {
     let user = this;
@@ -59,7 +61,8 @@ UserSchema.methods.generateAuthToken = function () {
     });
 };
 
-// define custom method on the model
+            /******* DEFINE CUSTOM  METHODS ON A MODEL *******/
+
 // this method find user using given token
 UserSchema.statics.findByToken = function (token) {
     let User = this;
@@ -78,7 +81,9 @@ UserSchema.statics.findByToken = function (token) {
     });
 };
 
-// Add middleware to user schema -> run before given event (to hash user password and save hash to database)
+                /******* ADD MIDDLEWARE TO USER SCHEMA *******/
+
+// Run before 'save' event (to hash user password and save hash to database)
 UserSchema.pre('save', function (next) {
     let user = this;
     // check if password is modified  - if true -> hash it again
