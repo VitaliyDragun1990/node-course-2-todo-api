@@ -61,6 +61,17 @@ UserSchema.methods.generateAuthToken = function () {
     });
 };
 
+// remove auth token from user object in database -> logout user
+UserSchema.methods.removeToken = function (token) {
+    let user = this;
+    // $pull -> pull from tokens array any object, which property token equals given token
+    return user.update({
+        $pull: {
+            tokens: {token}
+        }
+    });
+};
+
             /******* DEFINE CUSTOM  METHODS ON A MODEL *******/
 
 // this method find user using given token
