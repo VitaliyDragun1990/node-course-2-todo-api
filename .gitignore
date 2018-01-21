@@ -67,3 +67,4 @@ typings/
 *.iml
 out
 gen
+/server/config/config.json
