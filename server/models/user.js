@@ -49,6 +49,7 @@ UserSchema.methods.toJSON = function () {
                 /******* DEFINE CUSTOM  METHODS ON A SCHEMA *******/
 
 // don't use arrow function because we need access to 'this' keyword
+// generate authentication token for user
 UserSchema.methods.generateAuthToken = function () {
     let user = this;
     let access = 'auth';
@@ -64,7 +65,7 @@ UserSchema.methods.generateAuthToken = function () {
 // remove auth token from user object in database -> logout user
 UserSchema.methods.removeToken = function (token) {
     let user = this;
-    // $pull -> pull from tokens array any object, which property token equals given token
+    // $pull -> pull from tokens array any object, which property 'token' equals given token
     return user.update({
         $pull: {
             tokens: {token}
@@ -74,7 +75,7 @@ UserSchema.methods.removeToken = function (token) {
 
             /******* DEFINE CUSTOM  METHODS ON A MODEL *******/
 
-// this method find user using given token
+// find user using given token
 UserSchema.statics.findByToken = function (token) {
     let User = this;
     let decoded;
@@ -92,6 +93,7 @@ UserSchema.statics.findByToken = function (token) {
     });
 };
 
+// find user in database using given credentials
 UserSchema.statics.findByCredentials = function (email, password) {
   let User = this;
 
