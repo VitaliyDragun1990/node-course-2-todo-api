@@ -68,3 +68,4 @@ typings/
 out
 gen
 config.json
+/server/config/config.json
