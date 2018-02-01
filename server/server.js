@@ -23,74 +23,73 @@ app.use(bodyParser.json());
  /************* TODOS ROUTES **********************/
 
 // POST '/todos' -> create a new todo for currently logged in user
-app.post('/todos', authenticate, (req, res) => {
-    let todo = new Todo({
+app.post('/todos', authenticate, async (req, res) => {
+    let _todo = new Todo({
         text: req.body.text,
         _creator: req.user._id
     });
 
-    todo.save().then((todo) => {
+    try {
+        const todo = await _todo.save();
         res.send({todo});
-    }, (e) => {
+    } catch (e) {
         res.status(400).send(e);        // 400 - Bad Request
-    })
+    }
 });
 
 // GET '/todos' -> retrieve all existing todos for current user
-app.get('/todos', authenticate, (req, res) => {
-    Todo.find({
-        _creator: req.user._id
-    }).then((todos) => {
+app.get('/todos', authenticate, async (req, res) => {
+    try {
+        const todos = await Todo.find({_creator: req.user._id});
         res.send({todos});
-    }, (e) => {
+    } catch (e) {
         res.status(400).send(e);    // 400 - Bad Request
-    });
+    }
 });
 
 // GET '/todos/:id' -> retrieve existing todo by id
-app.get('/todos/:id', authenticate, (req, res) => {
-    let id = req.params['id'];
+app.get('/todos/:id', authenticate, async (req, res) => {
+    const id = req.params['id'];
     // validate the id
     if (!ObjectId.isValid(id)) {
         return res.status(404).send();      // 404 - Not Found
     }
 
-    Todo.findOne({
-        _id: id,
-        _creator: req.user._id
-    }).then((todo) => {
+    try {
+        let todo = await Todo.findOne({_id: id, _creator: req.user._id});
         if (!todo) {
             return res.status(404).send();  // 404 - Not Found
         }
         res.send({todo});
-    }).catch((e) => res.send(400).send()); // 400 - Bad Request
-
+    } catch (e) {
+        res.send(400).send(); // 400 - Bad Request
+    }
 });
 
 // DELETE '/todos/:id' -> delete existing todo
-app.delete('/todos/:id', authenticate, (req, res) => {
-    let id = req.params['id'];
+app.delete('/todos/:id', authenticate, async (req, res) => {
+    const id = req.params['id'];
 
     if (!ObjectId.isValid(id)) {
         return res.status(404).send();  // 404 - Not Found
     }
 
-    Todo.findOneAndRemove({
-        _id: id,
-        _creator: req.user._id
-    }).then(todo => {
+    try {
+        const todo = await Todo.findOneAndRemove({_id: id, _creator: req.user._id});
         if (!todo) {
             return res.status(404).send();       // 404 - Not Found
         }
         res.status(200).send({todo});            // 200 - OK
-    }).catch((e) => res.status(400).send());     // 400 - Bad Request
+    } catch (e) {
+        return res.status(404).send();       // 404 - Not Found
+    }
 });
 
 // PATCH '/todos/:id' -> update existing todo
-app.patch('/todos/:id', authenticate, (req, res) => {
-    let id = req.params['id'];
+app.patch('/todos/:id', authenticate, async (req, res) => {
+    const id = req.params['id'];
     // get only specific property from request body
-    let body = _.pick(req.body, ['text', 'completed']);
+    const body = _.pick(req.body, ['text', 'completed']);
 
     if (!ObjectId.isValid(id)) {
         return res.status(404).send();          // 404 - Not Found
@@ -104,29 +103,33 @@ app.patch('/todos/:id', authenticate, (req, res) => {
         body.completedAt = null;
     }
     // update the database
-    Todo.findOneAndUpdate({ _id: id, _creator: req.user._id }, { $set: body }, { new: true }).then(todo => {
-        // if there wasn't todo with such id, return 404 with empty body
+    try {
+        let todo = await Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {$set: body}, {new: true});
         if (!todo) {
             return res.status(404).send();      // 404 - Not Found
         }
         // if update successful, return todo as property of the response body
         res.send({todo});
-    }).catch(e => res.status(400).send());      // 400 - Bad Request
+    } catch (e) {
+        res.status(400).send();
+    }
 });
 
 /******************** USER ROUTES ****************************/
 
 
 // POST '/users' -> create new user
-app.post('/users', (req, res) => {
-    let body = _.pick(req.body, ['email', 'password']);
-    let user = new User(body);
+app.post('/users', async (req, res) => {
+    const body = _.pick(req.body, ['email', 'password']);
+    const user = new User(body);
 
-    user.save().then(() => {
-       return user.generateAuthToken();
-    }). then((token) => {
-        res.header('x-auth', token).send(user)
-    }).catch((e) => res.status(400).send(e));       // 400 - Bad Request
+    try {
+        await user.save();
+        const token = await user.generateAuthToken();
+        res.header('x-auth', token).send(user);
+    } catch (e) {
+        res.status(400).send(e);       // 400 - Bad Request
+    }
 });
 
 // GET '/users/me' -> return information about current user
@@ -135,25 +138,25 @@ app.get('/users/me', authenticate, (req, res) => {
 });
 
 // POST '/users/login' {email, password} -> login with given credentials
-app.post('/users/login', (req, res) => {
-    let body = _.pick(req.body, ['email', 'password']);
-
-    User.findByCredentials(body.email, body.password).then((user) => {
-        return user.generateAuthToken().then((token) => {
-            res.header('x-auth', token).send(user)
-        });
-    }).catch((e) => {
+app.post('/users/login', async (req, res) => {
+    const body = _.pick(req.body, ['email', 'password']);
+    try {
+        const user = await User.findByCredentials(body.email, body.password);
+        const token = await user.generateAuthToken();
+        res.header('x-auth', token).send(user);
+    } catch (e) {
         res.status(400).send();     // 400 - Bad Request
-    });
+    }
 });
 
 // DELETE /users/me/token -> logout current user by deleting his token
-app.delete('/users/me/token', authenticate, (req, res) => {
-    req.user.removeToken(req.token).then(() => {
+app.delete('/users/me/token', authenticate, async (req, res) => {
+    try {
+        await req.user.removeToken(req.token);
         res.status(200).send();
-    }, () => {
-      res.status(400).send();       // 400 - Bad Request
-    });
+    } catch (e) {
+        res.status(400).send();       // 400 - Bad Request
+    }
 });
 
 // start express application

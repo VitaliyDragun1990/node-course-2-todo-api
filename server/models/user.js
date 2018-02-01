@@ -51,21 +51,20 @@ UserSchema.methods.toJSON = function () {
 
 // don't use arrow function because we need access to 'this' keyword
 // generate authentication token for user
-UserSchema.methods.generateAuthToken = function () {
-    let user = this;
-    let access = 'auth';
+UserSchema.methods.generateAuthToken = async function () {
+    const user = this;
+    const access = 'auth';
     let token = jwt.sign({_id: user._id.toHexString(), access}, process.env.JWT_SECRET).toString();
 
     user.tokens.push({access, token});
     // save user to database and return promise which contains generated auth. token
-    return user.save().then(() => {
-        return token;
-    });
+    await user.save();
+    return token;
 };
 
 // remove auth token from user object in database -> logout user
 UserSchema.methods.removeToken = function (token) {
-    let user = this;
+    const user = this;
     // $pull -> pull from tokens array any object, which property 'token' equals given token
     return user.update({
         $pull: {
