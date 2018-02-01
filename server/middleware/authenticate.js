@@ -9,12 +9,12 @@ let authenticate = (req, res, next) => {
         if (!user) {
             return Promise.reject();  // throws us to catch handler at the end
         }
-        // if authentication was successful, modify request object
+        // if authentication was successful, modify request body object
         req.user = user;
         req.token = token;
         next();
     }).catch((e) => {
-        res.status(401).send();
+        res.status(401).send();     // 401 - Unauthorized
     });
 };
 

@@ -10,6 +10,7 @@ let {Todo} = require('./models/todo');
 let {User} = require('./models/user');
 let {authenticate} = require('./middleware/authenticate');
 
+// create express application
 let app = express();
 // define port variable to make possible heroku deployment
 const port = process.env.PORT;
@@ -18,6 +19,8 @@ const port = process.env.PORT;
 app.use(bodyParser.json());
 
  /*********** DEFINE ROUTE HANDLERS **************/
+
+ /************* TODOS ROUTES **********************/
 
 // POST '/todos' -> create a new todo for currently logged in user
 app.post('/todos', authenticate, (req, res) => {
@@ -29,7 +32,7 @@ app.post('/todos', authenticate, (req, res) => {
     todo.save().then((todo) => {
         res.send({todo});
     }, (e) => {
-        res.status(400).send(e);
+        res.status(400).send(e);        // 400 - Bad Request
     })
 });
 
@@ -40,7 +43,7 @@ app.get('/todos', authenticate, (req, res) => {
     }).then((todos) => {
         res.send({todos});
     }, (e) => {
-        res.status(400).send(e);
+        res.status(400).send(e);    // 400 - Bad Request
     });
 });
 
@@ -49,7 +52,7 @@ app.get('/todos/:id', authenticate, (req, res) => {
     let id = req.params['id'];
     // validate the id
     if (!ObjectId.isValid(id)) {
-        return res.status(404).send();
+        return res.status(404).send();      // 404 - Not Found
     }
 
     Todo.findOne({
@@ -57,10 +60,10 @@ app.get('/todos/:id', authenticate, (req, res) => {
         _creator: req.user._id
     }).then((todo) => {
         if (!todo) {
-            return res.status(404).send();
+            return res.status(404).send();  // 404 - Not Found
         }
         res.send({todo});
-    }).catch((e) => res.send(400).send());
+    }).catch((e) => res.send(400).send()); // 400 - Bad Request
 
 });
 
@@ -69,7 +72,7 @@ app.delete('/todos/:id', authenticate, (req, res) => {
     let id = req.params['id'];
 
     if (!ObjectId.isValid(id)) {
-        return res.status(404).send();
+        return res.status(404).send();  // 404 - Not Found
     }
 
     Todo.findOneAndRemove({
@@ -77,10 +80,10 @@ app.delete('/todos/:id', authenticate, (req, res) => {
         _creator: req.user._id
     }).then(todo => {
         if (!todo) {
-            return res.status(404).send();
+            return res.status(404).send();       // 404 - Not Found
         }
-        res.status(200).send({todo});
-    }).catch((e) => res.status(400).send());
+        res.status(200).send({todo});            // 200 - OK
+    }).catch((e) => res.status(400).send());     // 400 - Bad Request
 });
 
 // PATCH '/todos/:id' -> update existing todo
@@ -90,7 +93,7 @@ app.patch('/todos/:id', authenticate, (req, res) => {
     let body = _.pick(req.body, ['text', 'completed']);
 
     if (!ObjectId.isValid(id)) {
-        return res.status(404).send();
+        return res.status(404).send();          // 404 - Not Found
     }
     // if completed boolean and it's true
     if (_.isBoolean(body.completed) && body.completed) {
@@ -104,12 +107,14 @@ app.patch('/todos/:id', authenticate, (req, res) => {
     Todo.findOneAndUpdate({ _id: id, _creator: req.user._id }, { $set: body }, { new: true }).then(todo => {
         // if there wasn't todo with such id, return 404 with empty body
         if (!todo) {
-            return res.status(404).send();
+            return res.status(404).send();      // 404 - Not Found
         }
         // if update successful, return todo as property of the response body
         res.send({todo});
-    }).catch(e => res.status(400).send());
+    }).catch(e => res.status(400).send());      // 400 - Bad Request
 });
+
+/******************** USER ROUTES ****************************/
 
 
 // POST '/users' -> create new user
@@ -121,10 +126,9 @@ app.post('/users', (req, res) => {
        return user.generateAuthToken();
     }). then((token) => {
         res.header('x-auth', token).send(user)
-    }).catch((e) => res.status(400).send(e));
+    }).catch((e) => res.status(400).send(e));       // 400 - Bad Request
 });
 
-// define route handler with middleware
 // GET '/users/me' -> return information about current user
 app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
@@ -139,7 +143,7 @@ app.post('/users/login', (req, res) => {
             res.header('x-auth', token).send(user)
         });
     }).catch((e) => {
-        res.status(400).send();
+        res.status(400).send();     // 400 - Bad Request
     });
 });
 
@@ -148,7 +152,7 @@ app.delete('/users/me/token', authenticate, (req, res) => {
     req.user.removeToken(req.token).then(() => {
         res.status(200).send();
     }, () => {
-      res.status(400).send();
+      res.status(400).send();       // 400 - Bad Request
     });
 });
 

@@ -35,7 +35,7 @@ let UserSchema = new mongoose.Schema({
     }]
 });
 
-                /******* OVERRIDE EXISTING METHODS ON A SCHEMA *******/
+/*********** OVERRIDE EXISTING METHODS ON A SCHEMA *******************/
 
 // this method defines what exactly gets send back when the mongoose
 // model is converted into a json value
@@ -43,10 +43,11 @@ UserSchema.methods.toJSON = function () {
     let user = this;
     let userObject = user.toObject();   // create object from user schema
 
+    // return object that contains only specific property from user schema
     return _.pick(userObject, ['_id', 'email']);
 };
 
-                /******* DEFINE CUSTOM  METHODS ON A SCHEMA *******/
+/*************** DEFINE CUSTOM  METHODS ON A SCHEMA ******************/
 
 // don't use arrow function because we need access to 'this' keyword
 // generate authentication token for user
@@ -56,7 +57,7 @@ UserSchema.methods.generateAuthToken = function () {
     let token = jwt.sign({_id: user._id.toHexString(), access}, process.env.JWT_SECRET).toString();
 
     user.tokens.push({access, token});
-    // return promise which contains auth. token
+    // save user to database and return promise which contains generated auth. token
     return user.save().then(() => {
         return token;
     });
@@ -73,7 +74,7 @@ UserSchema.methods.removeToken = function (token) {
     });
 };
 
-            /******* DEFINE CUSTOM  METHODS ON A MODEL *******/
+/***************** DEFINE CUSTOM  METHODS ON A MODEL ***************/
 
 // find user using given token
 UserSchema.statics.findByToken = function (token) {
@@ -114,7 +115,7 @@ UserSchema.statics.findByCredentials = function (email, password) {
   });
 };
 
-                /******* ADD MIDDLEWARE TO USER SCHEMA *******/
+/********************* ADD MIDDLEWARE TO USER SCHEMA *******************/
 
 // Run before 'save' event (to hash user password and save hash to database)
 UserSchema.pre('save', function (next) {
